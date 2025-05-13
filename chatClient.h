@@ -14,6 +14,7 @@ private:
     QTextEdit *chatDisplay;
     QLineEdit *inputField;
     QTcpSocket *socket;
+    QString *userName;
 
 public:
     ChatWindow();

@@ -4,9 +4,28 @@
 #include <QHBoxLayout>
 #include <QApplication>
 #include <QHostAddress>
+#include <ctime> // for using time() as seed for random number generation
+#include <unistd.h> // for using getpid() as seed for random number generation
 
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 9034
+
+std::string gen_random_username() {
+    // Generate a random username on client start
+    static const int USERNAME_LEN = 10;
+    static const std::string prefix = "User_";
+    static const char alphanum[] =
+        "0123456789"
+        "abcdefghijklmnopqrstuvwxyz";
+    std::string tmp_s;
+    tmp_s.reserve(USERNAME_LEN);
+
+    for (int i = 0; i < USERNAME_LEN; ++i) {
+        tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    return prefix+tmp_s;
+}
 
 ChatWindow::ChatWindow() {
     // Set up the main layout
@@ -32,7 +51,8 @@ ChatWindow::ChatWindow() {
     // Add input layout to the main layout
     mainLayout->addLayout(inputLayout);
 
-
+    // Get username
+    userName = new QString(QString::fromStdString(gen_random_username()));
 
     socket = new QTcpSocket(this);
     socket->connectToHost(QHostAddress(SERVER_IP), SERVER_PORT);
@@ -59,8 +79,10 @@ void ChatWindow::sendMessage() {
         return;
     }
 
+    QString formattedMessage = userName + QString(": ") + message;
+
     // Send message to server
-    socket->write(message.toUtf8());
+    socket->write(formattedMessage.toUtf8());
     socket->flush();
 
     qDebug() << "Sent message:" << message;
@@ -72,15 +94,14 @@ void ChatWindow::sendMessage() {
 
 void ChatWindow::receiveMessage() {
     // Placeholder for receiving messages
-    qDebug() << socket->canReadLine();
     QByteArray data = socket->readAll(); // Read all available data
     if (!data.isEmpty()) {
-        chatDisplay->append("Server: " + QString(data).trimmed());
-        qDebug() << "Received message:" << data;
+        chatDisplay->append(QString(data).trimmed());
     }
 }
 
 int main(int argc, char *argv[]) {
+    srand((unsigned)time(NULL) * getpid()); // Seed the random number generator with current time and process ID
     QApplication app(argc, argv);
 
     ChatWindow window;
