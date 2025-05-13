@@ -11,6 +11,8 @@ add_executable(chat_client chatClient.cpp chatClient.h)
 # Server executable
 add_executable(chat_server chatServer.cpp)
 
+add_subdirectory(cpp-dotenv)
+
 # set_target_properties(chat_client PROPERTIES AUTOMOC TRUE)
 target_link_libraries(chat_client
                     Qt5::Widgets
