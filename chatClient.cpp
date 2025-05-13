@@ -1,7 +1,9 @@
+#include <QDebug>
 #include "chatClient.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QApplication>
+#include <QHostAddress>
 
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 9034
@@ -21,6 +23,7 @@ ChatWindow::ChatWindow() {
     // Input field
     inputField = new QLineEdit(this);
     inputLayout->addWidget(inputField);
+    inputField->setEnabled(false); // Disable input field until connected
 
     // Send button
     QPushButton *sendButton = new QPushButton("Send", this);
@@ -29,9 +32,22 @@ ChatWindow::ChatWindow() {
     // Add input layout to the main layout
     mainLayout->addLayout(inputLayout);
 
+
+
+    socket = new QTcpSocket(this);
+    socket->connectToHost(QHostAddress(SERVER_IP), SERVER_PORT);
+    chatDisplay->append(QString("Connecting to server %1 at port %2...").arg(SERVER_IP).arg(SERVER_PORT));
+    if (!socket->waitForConnected(3000)) {
+        chatDisplay->append("Error: Unable to connect to server.");
+        return;
+    }
+    chatDisplay->append(QString("Success!"));
+    inputField->setEnabled(true); // Enable input field after connection is successful
+
     // Connect signals to slots
     connect(sendButton, &QPushButton::clicked, this, &ChatWindow::sendMessage);
     connect(inputField, &QLineEdit::returnPressed, this, &ChatWindow::sendMessage);
+    connect(socket, &QTcpSocket::readyRead, this, &ChatWindow::receiveMessage);
 
     // Set the window title
     setWindowTitle("ChatApp");
@@ -43,6 +59,12 @@ void ChatWindow::sendMessage() {
         return;
     }
 
+    // Send message to server
+    socket->write(message.toUtf8());
+    socket->flush();
+
+    qDebug() << "Sent message:" << message;
+
     // Display the message in the chat window
     chatDisplay->append("You: " + message);
     inputField->clear();
@@ -50,6 +72,12 @@ void ChatWindow::sendMessage() {
 
 void ChatWindow::receiveMessage() {
     // Placeholder for receiving messages
+    qDebug() << socket->canReadLine();
+    QByteArray data = socket->readAll(); // Read all available data
+    if (!data.isEmpty()) {
+        chatDisplay->append("Server: " + QString(data).trimmed());
+        qDebug() << "Received message:" << data;
+    }
 }
 
 int main(int argc, char *argv[]) {

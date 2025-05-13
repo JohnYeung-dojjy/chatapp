@@ -13,6 +13,7 @@ class ChatWindow : public QWidget {
 private:
     QTextEdit *chatDisplay;
     QLineEdit *inputField;
+    QTcpSocket *socket;
 
 public:
     ChatWindow();
