@@ -11,6 +11,7 @@ class ChatWindow : public QWidget {
     Q_OBJECT
 
 private:
+    QString SERVER_IP;
     QTextEdit *chatDisplay;
     QLineEdit *inputField;
     QTcpSocket *socket;

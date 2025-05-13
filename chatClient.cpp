@@ -6,8 +6,8 @@
 #include <QHostAddress>
 #include <ctime> // for using time() as seed for random number generation
 #include <unistd.h> // for using getpid() as seed for random number generation
+#include "dotenv.h"
 
-#define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 9034
 
 std::string gen_random_username() {
@@ -28,6 +28,8 @@ std::string gen_random_username() {
 }
 
 ChatWindow::ChatWindow() {
+    dotenv::env.load_dotenv(); // load env from .env file
+    SERVER_IP = QString::fromStdString(dotenv::env["SERVER_IP"]); // get server IP from env
     // Set up the main layout
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 

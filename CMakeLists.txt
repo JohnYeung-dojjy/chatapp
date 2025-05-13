@@ -17,5 +17,6 @@ add_subdirectory(cpp-dotenv)
 target_link_libraries(chat_client
                     Qt5::Widgets
                     Qt5::Network
+                    cpp_dotenv
 )
 target_link_libraries(chat_server Qt5::Widgets)
